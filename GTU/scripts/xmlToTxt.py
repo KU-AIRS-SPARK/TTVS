@@ -3,7 +3,8 @@ import argparse
 import os
 
 # write your class names in your xml files
-classes = ["Sola_Donulmez", "Saga_Donulmez", "Giris_Olmayan_Yol", "Park", "Park_Yasaktir", "Dur", "Durak", "Trafige_Kapali_Yol", "Kirmizi", "Yesil"]
+#classes = ["Sola_Donulmez", "Saga_Donulmez", "Giris_Olmayan_Yol", "Park", "Park_Yasaktir", "Dur", "Durak", "Trafige_Kapali_Yol", "Kirmizi", "Yesil"]
+classes = ["Sola donulmez", "Saga donulmez", "Giris olmayan yol", "Park yeri", "Park etmek yasaktir", "Dur", "Durak", "Tasit trafigine kapali yol", "Kirmizi", "Yesil","Ileriden sola mecburi yon","Ileriden saga mecburi yon","Ileri ve saga mecburi yon","Ileri ve sola mecburi yon","Azami hiz sinirlamasi (20 km/saat)","Hiz sinirlamasi sonu (20 km/saat)","Azami hiz sinirlamasi (30 km/saat)","Sola donulmez"]
 
 
 def convert(size, box):
@@ -25,7 +26,8 @@ def main(args):
 
 	dataset_path = args.dataset_path
 
-	annot_path = os.path.join(dataset_path, "annots")
+	annot_path = os.path.join(dataset_path, "labels")
+	#annot_path = os.path.join(dataset_path, "annots")
 
 	filenames = os.listdir(annot_path)
 
@@ -33,27 +35,29 @@ def main(args):
 	if not os.path.exists(os.path.join(dataset_path, "labels")):
 		os.makedirs(os.path.join(dataset_path, "labels"))
 	for filename in filenames:
-		img_id = filename[:-4]
-		file_path = os.path.join(annot_path, filename)
-		in_file = open(file_path)
-		out_file = open(os.path.join(dataset_path, "labels", img_id + ".txt"), "w")
-		tree=ET.parse(in_file)
-		root = tree.getroot()
-		size = root.find('size')
-		w = int(size.find('width').text)
-		h = int(size.find('height').text)
+		if filename.endswith(".xml"):
+			img_id = filename[:-4]
+			file_path = os.path.join(annot_path, filename)
+			in_file = open(file_path)
+			out_file = open(os.path.join(dataset_path, "labels", img_id + ".txt"), "w")
+			print("hey"+filename) #filename
+			tree=ET.parse(in_file)
+			root = tree.getroot()
+			size = root.find('size')
+			w = int(size.find('width').text)
+			h = int(size.find('height').text)
 
-		for obj in root.iter('object'):
-			difficult = obj.find('difficult').text
-			cls = obj.find('name').text
+			for obj in root.iter('object'):
+				difficult = obj.find('difficult').text
+				cls = obj.find('name').text
 
-			if cls not in classes or int(difficult) == 1:
-				continue
-			cls_id = classes.index(cls)
-			xmlbox = obj.find('bndbox')
-			b = (float(xmlbox.find('xmin').text), float(xmlbox.find('xmax').text), float(xmlbox.find('ymin').text), float(xmlbox.find('ymax').text))
-			bb = convert((w,h), b)
-			out_file.write(str(cls_id) + " " + " ".join([str(a) for a in bb]) + '\n')
+				if cls not in classes or int(difficult) == 1:
+					continue
+				cls_id = classes.index(cls)
+				xmlbox = obj.find('bndbox')
+				b = (float(xmlbox.find('xmin').text), float(xmlbox.find('xmax').text), float(xmlbox.find('ymin').text), float(xmlbox.find('ymax').text))
+				bb = convert((w,h), b)
+				out_file.write(str(cls_id) + " " + " ".join([str(a) for a in bb]) + '\n')
 	
 
 if __name__ == '__main__':
